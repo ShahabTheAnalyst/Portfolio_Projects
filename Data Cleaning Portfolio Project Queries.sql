@@ -1,8 +1,8 @@
+/* Cleaning Data in SQL Queries*/
+
 create database data_cleaning
 
 Use data_cleaning
-
-/* Cleaning Data in SQL Queries*/
 
 Select * 
 from NashvilleHousing
@@ -140,15 +140,15 @@ Order by 2
 
 With RowNumCTE AS (
 Select *,
-		ROW_NUMBER() Over(
-		Partition By ParcelID,
-							PropertyAddress,
-							SaleDate, 
-							SalePrice,
-							LegalReference
-							Order By
-									UniqueID
-									) As row_num
+	ROW_NUMBER() Over(
+	Partition By ParcelID,
+		PropertyAddress,
+		SaleDate, 
+		SalePrice,
+		LegalReference
+		Order By
+			UniqueID
+			) As row_num
 From NashvilleHousing
 )
 Select * 
@@ -158,15 +158,15 @@ Order By PropertyAddress
 
 With RowNumCTE As (
 Select *,
-		ROW_NUMBER() Over(
-		Partition By ParcelID,
-							PropertyAddress,
-							SaleDate, 
-							SalePrice,
-							LegalReference
-							Order By
-									UniqueID
-									) As row_num
+	ROW_NUMBER() Over(
+	Partition By ParcelID,
+		PropertyAddress,
+		SaleDate, 
+		SalePrice,
+		LegalReference
+		Order By
+			UniqueID
+			) As row_num
 From NashvilleHousing
 )
 Delete
@@ -182,6 +182,10 @@ From NashvilleHousing
 Alter Table NashvilleHousing
 Drop Column SaleDate, PropertyAddress, OwnerAddress, TaxDistrict
 
+-----------------------------------------------------------------------------------------------------------------
+-- 6. Renaming Column
 
+Select * 
+From NashvilleHousing
 
-
+Exec sp_rename 'NashvilleHousing.SaleConvertedDate', 'SaleDate'
