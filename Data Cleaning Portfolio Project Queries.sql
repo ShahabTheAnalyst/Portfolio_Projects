@@ -4,188 +4,402 @@ create database data_cleaning
 
 Use data_cleaning
 
-Select * 
-from NashvilleHousing
------------------------------------------------------------------------------------------------------------------
--- 1. Standardize Date Format
+-- Checking out the table
+Select 
+	* 
+From 
+	Housing
 
-Select SaleDate, CONVERT(date, SaleDate) 
-from NashvilleHousing
+--1. Checking out the number of columns and rows in table
 
-Update  NashvilleHousing
-Set SaleDate = Convert(Date, SaleDate)
+SELECT 
+    (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Housing') AS NumberOfColumns,
+    (SELECT SUM(row_count) FROM sys.dm_db_partition_stats WHERE object_id = OBJECT_ID('Housing')) AS NumberOfRows;
 
--- If it does not update properly then
+	/* The output shows that there are 19 columns and 56477 rows in the table.*/
 
-Alter Table NashvilleHousing
-Add SaleConvertedDate Date
 
-Update NashvilleHousing
-Set SaleConvertedDate = CONVERT(Date, SaleDate)
+-- 2. Standardize Date Format
 
------------------------------------------------------------------------------------------------------------------
--- 2. Populate Property Address Data
+-- There is information on date in the SaleDate column. It needs to be standardized
 
-Select * 
-From NashvilleHousing
-Order By ParcelID
+Select 
+	SaleDate, 
+	CONVERT(date, SaleDate)  As date_formatted
+From 
+	Housing
 
-Select A.ParcelID,A.PropertyAddress, B.ParcelID, B.PropertyAddress, ISNULL(A.PropertyAddress, B.PropertyAddress)
-From NashvilleHousing As A
-Join NashvilleHousing As B
-	On A.ParcelID = B.ParcelID and
-	A.[UniqueID ] <> B.[UniqueID ]
-Where A.PropertyAddress is Null
+	-- Creating a new column 'SaleConvertedDate' 
 
-Update A
-Set PropertyAddress = ISNULL(A.PropertyAddress, B.PropertyAddress)
-From NashvilleHousing As A
-Join NashvilleHousing As B
-	On A.ParcelID = B.ParcelID and
-	A.[UniqueID ] <> B.[UniqueID ]
-Where A.PropertyAddress is Null
+Alter Table Housing
+Add SaleDate_Formatted Date
 
------------------------------------------------------------------------------------------------------------------
--- 3. Breaking out Property Address Data and Owner Address Data into Individual Columns (Address, City, State)
+	-- Updating the 'SaleConvertedDate' column
+Update Housing
+Set SaleDate_Formatted = CONVERT(Date, SaleDate)
+
+
+-- 3. Addressing Null values in the 'PropertyAddress' Column
+
+-- Checking
+Select 
+	ParcelID, 
+	PropertyAddress 
+From 
+	Housing
+Order By 
+	1
+
+/* By scrolling through the out put it is oserved that there are Null values in the 'PropertyAddress'.
+	Furthermore each parcel of land has its own unique ParcelID.
+	If a parcel is bought is sold or bought it address will remain the same.*/ 
+
+-- For filling the null values we will use Self Join 
+
+Select 
+	Tab_A.ParcelID,
+	Tab_A.PropertyAddress, 
+	Tab_B.ParcelID, 
+	Tab_B.PropertyAddress, 
+	ISNULL(Tab_A.PropertyAddress, Tab_B.PropertyAddress) As property_address
+From 
+	Housing As Tab_A
+Join 
+	Housing As Tab_B
+	On 
+		Tab_A.ParcelID = Tab_B.ParcelID 
+		and Tab_A.[UniqueID ] <> Tab_B.[UniqueID ]
+Where 
+	Tab_A.PropertyAddress is Null
+
+-- For updating the 'PropertyAddress' column in the table
+
+Update Tab_A
+Set 
+	PropertyAddress = ISNULL(Tab_A.PropertyAddress, Tabe_B.PropertyAddress)
+From 
+	Housing As Tab_A
+Join 
+	Housing As Tabe_B
+	On 
+		Tab_A.ParcelID = Tabe_B.ParcelID and
+		Tab_A.[UniqueID ] <> Tabe_B.[UniqueID ]
+Where 
+	Tab_A.PropertyAddress is Null
+
+	-- Checking if there are any remaining null values in the 'Property_Address' column
+select 
+	ParcelID, 
+	PropertyAddress
+From
+	Housing
+Where 
+	PropertyAddress is null
+
+/* The output shows that there are no null values.*/
+
+
+-- 4. Splitting Property Address Data and Owner Address Data into Individual Columns (Address, City, State)
 
 	-- A. Property Address Data
-Select PropertyAddress
-From NashvilleHousing
-Order by ParcelID
 
+	-- Checking the 'PropertyAddress' column
+Select 
+	PropertyAddress
+From 
+	Housing
+Order By 
+	ParcelID
+
+/* The output shows that we should split the column by comma, the information to the left of the comma is about the 
+address while to the right of the comma is information about City*/
+
+-- Splitting the column by comma
 Select
 	SUBSTRING(PropertyAddress, 1, CHARINDEX(',',PropertyAddress) -1) As Address,
-	SUBSTRING(PropertyAddress, CHARINDEX(',',PropertyAddress) -1, LEN(PropertyAddress)) As City
-From NashvilleHousing
+	SUBSTRING(PropertyAddress, CHARINDEX(',',PropertyAddress) +1, LEN(PropertyAddress)) As City
+From 
+	Housing
+Order By 
+	ParcelID
 
-Alter Table NashvilleHousing
-Add PropertySplitAddress Nvarchar (255)
+-- Creating a new column for information on property address in the table
+Alter Table 
+	Housing
+Add 
+	PropertyStreetAddress Nvarchar (255)
 
-Update NashvilleHousing
-Set PropertySplitAddress = SUBSTRING(PropertyAddress, 1, CHARINDEX(',',PropertyAddress) -1)
+-- Populating the column
+Update 
+	Housing
+Set 
+	PropertyStreetAddress = SUBSTRING(PropertyAddress, 1, CHARINDEX(',',PropertyAddress) -1)
 
-Alter Table NashvilleHousing
-Add PropertyCityAddress Nvarchar (255)
 
-Update NashvilleHousing
-Set PropertyCityAddress = SUBSTRING(PropertyAddress, CHARINDEX(',',PropertyAddress) -1, LEN(PropertyAddress))
+-- Creating a new column for information on property city in the table
+
+Alter Table 
+	Housing
+Add 
+	PropertyCity Nvarchar (255)
+
+-- Populating the column
+Update Housing
+Set PropertyCity = SUBSTRING(PropertyAddress, CHARINDEX(',',PropertyAddress) +1, LEN(PropertyAddress))
+
+
+-- Checking
+
+select 
+	PropertyAddress, PropertyStreetAddress, PropertyCity 
+From
+	Housing
 
 	-- B. Onwer Address Data
 
-Select * 
-from NashvilleHousing
+	-- Checking the 'OwnerAddress' column
+Select 
+	OwnerAddress
+From 
+	Housing
+Order By 
+	ParcelID
 
-Select OwnerAddress
-from NashvilleHousing
+/* The output shows that there are two commas, before the first comma we have information on the Street Address,
+after the first comma (in the middle) we have information on the City, and after the second comma there is infromation
+on the state*/
+
+-- Splitting the column by commas
 
 Select 
-PARSENAME(Replace(OwnerAddress, ',','.'),3),
-PARSENAME(Replace(OwnerAddress, ',','.'),2),
-PARSENAME(Replace(OwnerAddress, ',','.'),1)
-from NashvilleHousing
+PARSENAME(Replace(OwnerAddress, ',','.'),3) As Owner_Street_Address,
+PARSENAME(Replace(OwnerAddress, ',','.'),2) As Owner_City_Address,
+PARSENAME(Replace(OwnerAddress, ',','.'),1) As Owner_State_Address
+From 
+	Housing
 
-Alter Table NashvilleHousing
-Add OwnerSplitAddress nvarchar(255)
+-- Creating a new column for owner's street address
 
-Update NashvilleHousing
-Set OwnerSplitAddress = PARSENAME(Replace(OwnerAddress, ',','.'),3)
+Alter Table 
+	Housing
+Add 
+	OwnerStreetAddress Nvarchar(255)
 
-Alter Table NashvilleHousing
-Add OwnerCityAddress nvarchar(255)
+-- Populating the column
 
-Update NashvilleHousing
-Set OwnerCityAddress = PARSENAME(Replace(OwnerAddress, ',','.'),2)
+Update 
+	Housing
+Set 
+	OwnerStreetAddress = PARSENAME(Replace(OwnerAddress, ',','.'),3)
+
+-- Creating a new column for owner's city address
+
+Alter Table 
+	Housing
+Add 
+	OwnerCity Nvarchar(255)
+
+-- Populating the column
+
+Update 
+	Housing
+Set 
+	OwnerCity = PARSENAME(Replace(OwnerAddress, ',','.'),2)
+
+-- Creating a new column for owner's state address
+
+Alter Table 
+	Housing
+Add 
+	OwnerState Nvarchar(255)
+
+-- Populating the column
+
+Update 
+	Housing
+Set 
+	OwnerState = PARSENAME(Replace(OwnerAddress, ',','.'),1)
+
+-- Checking
+
+Select
+	OwnerAddress,
+	OwnerStreetAddress,
+	OwnerCity,
+	OwnerState
+From 
+	Housing
 
 
-Alter Table NashvilleHousing
-Add OwnerStateAddress nvarchar(255)
+-- 5. Cleaning the 'SoldAsVacant' column
 
-Update NashvilleHousing
-Set OwnerStateAddress = PARSENAME(Replace(OwnerAddress, ',','.'),1)
+-- Checking
+select 
+	Distinct(SoldAsVacant), 
+	Count(SoldAsVacant) As Count
+From 
+	Housing
+Group By 
+	SoldAsVacant
+Order By 
+	2
 
-Select *
-From NashvilleHousing
+/* In the out put there is Yes and No and then Y and N.*/ 
 
------------------------------------------------------------------------------------------------------------------
--- 4. Change Y and N to Yes and No in 'Sold as Vacant' Field
+-- Replacing Y with Yes and N with No
 
-select * 
-From NashvilleHousing
+Select 
+	SoldAsVacant,
+	Case When 
+		SoldAsVacant = 'Y' Then 'Yes'
+		When 
+			SoldAsVacant = 'N' Then 'No'
+		Else 
+			SoldAsVacant
+		End as sold_or_vacant
+From 
+	Housing
+Where
+	SoldAsVacant = 'Y'
+	or SoldAsVacant = 'N'
 
-select Distinct(SoldAsVacant), Count(SoldAsVacant) As Count
-From NashvilleHousing
-Group by SoldAsVacant
-Order by 2
+-- Updating the SoldAsVacant column
 
-Select SoldAsVacant,
-Case When SoldAsVacant = 'Y' Then 'Yes'
-		When SoldAsVacant = 'N' Then 'No'
-		Else SoldAsVacant
+Update Housing
+Set 
+	SoldAsVacant = Case When SoldAsVacant = 'Y' Then 'Yes'
+		When 
+			SoldAsVacant = 'N' Then 'No'
+		Else
+			SoldAsVacant
 		End
-From NashvilleHousing
 
-Update NashvilleHousing
-Set SoldAsVacant = Case When SoldAsVacant = 'Y' Then 'Yes'
-		When SoldAsVacant = 'N' Then 'No'
-		Else SoldAsVacant
-		End
+-- Checking
 
-select Distinct(SoldAsVacant), Count(SoldAsVacant) As Count
-From NashvilleHousing
-Group by SoldAsVacant
-Order by 2
+select 
+	Distinct(SoldAsVacant), 
+	Count(SoldAsVacant) As Count
+From 
+	Housing
+Group By 
+	SoldAsVacant
+Order By 
+	2 desc
 
------------------------------------------------------------------------------------------------------------------
--- 5. Remove Duplicates
+-- 6. Checking the table for Duplicates
 
 With RowNumCTE AS (
 Select *,
-	ROW_NUMBER() Over(
-	Partition By ParcelID,
-		PropertyAddress,
-		SaleDate, 
-		SalePrice,
-		LegalReference
-		Order By
-			UniqueID
-			) As row_num
-From NashvilleHousing
+		ROW_NUMBER() Over(
+		Partition By ParcelID,
+							PropertyAddress,
+							SaleDate, 
+							SalePrice,
+							LegalReference
+							Order By
+									UniqueID
+									) As row_num
+From Housing
 )
 Select * 
-from RowNumCTE
+From RowNumCTE
 Where row_num > 1
 Order By PropertyAddress
 
+-- There are 104 duplicates in the table
+
+-- Deleting the duplicates
+
 With RowNumCTE As (
 Select *,
-	ROW_NUMBER() Over(
-	Partition By ParcelID,
-		PropertyAddress,
-		SaleDate, 
-		SalePrice,
-		LegalReference
-		Order By
-			UniqueID
-			) As row_num
-From NashvilleHousing
+		ROW_NUMBER() Over(
+		Partition By ParcelID,
+							PropertyAddress,
+							SaleDate, 
+							SalePrice,
+							LegalReference
+							Order By
+									UniqueID
+									) As row_num
+From 
+	Housing
 )
 Delete
-From RowNumCTE
-Where row_num > 1
+From
+	RowNumCTE
+Where 
+	row_num > 1
 
------------------------------------------------------------------------------------------------------------------
--- 6. Delete Unused Columns
 
+-- 7. Checking the OwnerName column
+
+Select 
+	OwnerName
+From
+	Housing
+where
+	OwnerName is not null
+
+/* The output shows that some of the properties are owned by single individual, and in some cases they are co-owned*/ 
+
+-- Checking the co-owned properties.*/
+
+select
+	OwnerName
+From 
+	Housing
+Where OwnerName like '%&%'
+
+-- 'Yes' for Co-owned properties and 'No' for properties owned by a single individual 
+
+Select 
+	OwnerName,
+	Case When 
+		OwnerName like '%&%' Then 'Yes'
+		When 
+			OwnerName not like '%&%' Then 'No'
+		Else 
+			OwnerName
+		End as CoOwned
+From 
+	Housing
+Where OwnerName is not null
+
+-- Creating a new column
+
+Alter Table Housing
+Add CoOwned Nvarchar(255)
+
+-- Populating the new column and assigning Yes to Co-owned, and No to properties owned by a single owner.
+
+Update Housing
+Set 
+	CoOwned = Case When 
+		OwnerName like '%&%' Then 'Yes'
+		When 
+			OwnerName not like '%&%' Then 'No'
+		Else 
+			OwnerName
+		End 
+	From 
+		Housing
+
+-- Checking
+
+Select
+	OwnerName,
+	CoOwned
+From 
+	Housing
+Where OwnerName is not null
+
+
+-- 8. Deleting Unused Columns
+
+-- Checking for columns that we do not need
 Select * 
-From NashvilleHousing
+From Housing
 
-Alter Table NashvilleHousing
-Drop Column SaleDate, PropertyAddress, OwnerAddress, TaxDistrict
-
------------------------------------------------------------------------------------------------------------------
--- 6. Renaming Column
-
-Select * 
-From NashvilleHousing
-
-Exec sp_rename 'NashvilleHousing.SaleConvertedDate', 'SaleDate'
+-- Deleting the columns
+Alter Table Housing
+Drop Column PropertyAddress, SaleDate, OwnerAddress, TaxDistrict
