@@ -1,15 +1,15 @@
 /*	
-											COVIDE 19 DATA EXPLORATION
+						COVIDE 19 DATA EXPLORATION
 
 -- Database used: Microsoft SQL Server
--- Skills used: Joins, Aggregate Functions, Converting Data Types, Windows Functions, Temp Tables, CTE's, Creating Veiws 
+-- Skills used: Joins, Aggregate Functions, Converting Data Types, Windows Functions, Temp Tables, CTE's.
 -- Datasets used are
 	Covid_death (can be seen/downloaded at http://tinyurl.com/5aj3zy2c
 	Covid_vacci (can be seen/downloaded at http://tinyurl.com/yyvrsn8t
-	The data is visualized through basic MS Excel chart can be seen at http://tinyurl.com/227ez58c
+	The data is visualized through basic MS Excel charts that can be seen at http://tinyurl.com/227ez58c
 
 
-												TABLE OF CONTENT
+							TABLE OF CONTENT
 
 	1.	Checking the Covid_death table
 		A. Ascertaining the number of column and row in the covid_deaths table
@@ -19,7 +19,7 @@
 			i. Alternative way
 	3. Checking the Continent column
 	4. Checking the location, date, covid cases, deaths, and population and ordering by Location and date in ascending order.
-	5. Total Deaths vs Total cases (likelyhood of dying if infected by Covid 19)
+	5. Total Deaths vs Total cases (likelihood of dying if infected by Covid 19)
 		A. Countries
 		B. Continent
 		C. Countries by Income
@@ -130,8 +130,8 @@ Where continent is not null
 
 /* The output shows that the continent column has information on continents only.*/
 
-/* NOTE: There are group of countries like European Union, High income Low income, Lower middle income, Upper middle income, 
-World. One thing that we have to take into condieration is that if a country lets say France will have separate information, 
+/* NOTE: There are groups of countries like European Union, High income Low income, Lower middle income, Upper middle income, 
+World. One thing that we have to take into consideration is that if a country let's say France will have separate information, 
 also the information on France will be included in World, High income, and  European Union etc. Therefore should be careful in 
 our analysis to avoid any bias or error while utilizing the information contained in the Location column.*/
 
@@ -153,7 +153,7 @@ Order by
 	1, 2
 
 
--- 5. Total Deaths vs Total cases (likelyhood of dying if infected by Covid 19)
+-- 5. Total Deaths vs Total cases (likelihood of dying if infected by Covid 19)
 
 	-- A. Countries
 
@@ -170,7 +170,7 @@ Group by location
 ORDER BY
     4 desc
 
-/* The output shows that probability of dying if infected with covid 19 is the highest (18 percent).*/
+/* The output shows that the probability of dying if infected with covid 19 is the highest (18 percent).*/
 
 	--B. Continent
 
@@ -187,7 +187,7 @@ Group by continent
 ORDER BY
     4 desc
 
-/* The output shows that if infected with covid 19 the probability of dying is higest in case of Africa (2.5 percent)
+/* The output shows that if infected with covid 19 the probability of dying is highest in the case of Africa (2.5 percent)
 while Oceania has the lowest (0.19 percent).*/
 
 	-- C. Countries by income
@@ -206,10 +206,10 @@ Group by location
 ORDER BY
     4 desc
 
-/* The output shows that if infected with covid 19 then the probability of dying is the highest in low income 
-countries (2.07 percent) while it is the lowest in case of high income countries.*/
+/* The output shows that if infected with COVID-19 then the probability of dying is the highest in low-income 
+countries (2.07 percent) while it is the lowest in the case of high-income countries.*/
 
---6. Checking the likelihood of contract the infection by month.
+--6. Checking the likelihood of contracting the infection by month.
 
 SELECT
     MONTH(date) AS Month,
@@ -223,7 +223,7 @@ GROUP
 order by 
 	2 desc
 
-/* The output shows that there is surge infection rate is higher in the first 4 months of the year,
+/* The output shows that the surge in infection rate is higher in the first 4 months of the year,
 especially the March and April*/
 
 
@@ -241,7 +241,7 @@ GROUP BY
 order by 
 	2 desc
 
-/* The output shows that the likelyhood of dying from covid is far more high in March, April, May. This might be due to
+/* The output shows that the likelihood of dying from covid is far more high in March, April, May. This might be due to
 the fact that the infection rate is higher in the first five months of the year. However further investigation is 
 needed.*/
 
