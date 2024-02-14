@@ -8,17 +8,46 @@
 	Covid_vacci (can be seen/downloaded at http://tinyurl.com/yyvrsn8t
 	The data is visualized through basic MS Excel charts that can be seen at http://tinyurl.com/227ez58c
 
+							QUESTIONS
+
+In this EDA project, we answer the following questions.
+
+	Question # 1. What is the likelihood of dying if infected by Covid 19?
+		a. By countries.
+		b. By continents.
+		c. By income groups.
+	Question # 2. What is the probability of contracting covid 19 by month of year?
+	Question # 3. What is the probability of contracting Covid 19 by month of year?
+	Question # 4. What is the infection rate by month of year?
+	Question # 5. What percent of the population is infected with covid 19?
+		a. By countries.
+		b. By continents.
+		c. By income groups.
+	Question # 6. What is the death count?
+		a. By countries.
+		b. By continents.
+		c. By income groups.
+	Question # 7. Analyze the fertility rate.
+		a. By countries.
+		b. By continents.
+		c. By income groups.
+	Question # 8. What is the average rolling number of people vaccinated by year?
+		a. By countries.
+		b. By continents.
+		c. By income groups.
+	Question # 9. What is the percentile rank based on the ratio of people fully vaccinated people to the 
+		population of each location.
 
 							TABLE OF CONTENT
 
 	1.	Checking the Covid_death table
-		A. Ascertaining the number of column and row in the covid_deaths table
+		A. Ascertaining the number of columns and rows in the covid_deaths table
 	2. Checking the Location column
 		A. For isolating the information in the location other than country names
-		B. For isolating information on Lower middle income, Low income, Upper middle income, and High income
+		B. For isolating information on Lower middle income, Low income, Upper middle income, and High Income
 			i. Alternative way
 	3. Checking the Continent column
-	4. Checking the location, date, covid cases, deaths, and population and ordering by Location and date in ascending order.
+	4. Checking the location, date, covid cases, deaths, and population and ordering them by location and date in ascending order.
 	5. Total Deaths vs Total cases (likelihood of dying if infected by Covid 19)
 		A. Countries
 		B. Continent
@@ -26,12 +55,12 @@
 	6. Checking the likelihood of contracting the infection by month
 	7. Checking out the death percentage by month.
 	8. Investigation by each year (2020, 2021, 2022, 2023)
-		A. Investigating monthwise death percentage by year
+		A. Investigating month-wise death percentage by year
 		B. Investigating monthwise infection rate by year.
 	9. Total Case vs Population
 		A. Percent of population infected by country
-		B. Percent of population infected by continent
-		C. Percent of population infected by classification of countries by income.
+		B. Percent of the population infected by continent
+		C. Percent of the population infected by classification of countries by income.
 	10. Death Count
 		A. By country
 		B. By continent
@@ -43,8 +72,8 @@
 	12. Checking the Covid_vacci table
 		A. Checking the number of rows and columns
 	13. Investigating the percent of total population vaccinated
-		A. For investigating which column contains information on vaccination that we can use for our analysis. 
-	14. Checking the average rolling people vanccinated by year
+		A. To investigate which column contains information on vaccination that we can use for our analysis, 
+	14. Checking the average rolling people vaccinated by year
 		A. By country (using CTE)
 		B. By continent (using temp table)
 		C. By income group
@@ -62,8 +91,8 @@ Select
 From 
 	Covid_deaths
 
-/* It seems that the tables contains  information on population, covid case, deaths, reproduction rate, 
-and hospitalization by continent, country and date.*/
+/* It seems that the tables contain  information on population, covid case, deaths, reproduction rate, 
+and hospitalization by continent, country, and date.*/
 
 
 	-- A. Ascertaining the number of columns and rows in the covid_deaths table
@@ -71,7 +100,7 @@ SELECT
     (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'covid_deaths') AS NumberOfColumns,
     (SELECT SUM(row_count) FROM sys.dm_db_partition_stats WHERE object_id = OBJECT_ID('covid_deaths')) AS NumberOfRows;
 
-	/* The output shows that there are 26 columns and 327369 rows in the table.*/
+	/* The output shows 26 columns and 327369 rows in the table.*/
 
 
 -- 2. Checking the Location column
@@ -83,8 +112,8 @@ from
 order 
 	by location
 	
-/* The output reveals that the locations column has information on countries as well as continents, high income,
-low income, or middle income. */
+/* The output reveals that the locations column has information on countries and continents, as well as high-income,
+low-income, and middle-income. */
 
 	-- A. For isolating the information in the location other than country names
 
@@ -95,10 +124,10 @@ From
 Where 
 	continent is null
 
-/* The output confirms that beside the name of countries the location column contains information on continent,
+/* The output confirms that besides the name of countries, the location column contains information on continents,
 Lower middle income, Low income, European Union,  Upper middle income,  High income */
 
-	-- B. For isolating information on Lower middle income, Low income, Upper middle income, and High income
+	-- B. For isolating information on Lower middle income, Low income, Upper middle income, and High Income
 
 Select
 	distinct(location)
@@ -118,7 +147,7 @@ Where
 	continent is null and 
 	location in ('High income', 'Upper middle income', 'Lower middle income', 'Low income')
 
-/* The output shows that there are 4 categories of countries by income*/
+/* The output shows that there are four categories of countries by income*/
 
 -- 3. Checking out the continent column
 
@@ -130,13 +159,13 @@ Where continent is not null
 
 /* The output shows that the continent column has information on continents only.*/
 
-/* NOTE: There are groups of countries like European Union, High income Low income, Lower middle income, Upper middle income, 
-World. One thing that we have to take into consideration is that if a country let's say France will have separate information, 
-also the information on France will be included in World, High income, and  European Union etc. Therefore should be careful in 
-our analysis to avoid any bias or error while utilizing the information contained in the Location column.*/
+/* NOTE: There are groups of countries like European Union, High-income Low income, Lower middle income, Upper middle income, 
+World. One thing that we have to consider is that if a country, let's say France, has separate information, 
+also the information on France will be included in World, High income, and  European Union, etc. Therefore, we should be careful in 
+our analysis to avoid bias or error while utilizing the information in the Location column.*/
 
 
--- 4. Checking the location, date, covid cases, deaths, and population and ordering by Location and date 
+-- 4. Checking the location, date, COVID cases, deaths, and population and ordering by Location and date 
 --	  in ascending order
 
 select 
@@ -170,7 +199,7 @@ Group by location
 ORDER BY
     4 desc
 
-/* The output shows that the probability of dying if infected with covid 19 is the highest (18 percent).*/
+/* The output shows the highest probability of dying if infected with covid 19 (18 percent).*/
 
 	--B. Continent
 
@@ -187,7 +216,7 @@ Group by continent
 ORDER BY
     4 desc
 
-/* The output shows that if infected with covid 19 the probability of dying is highest in the case of Africa (2.5 percent)
+/* The output shows that if infected with COVID-19 19, the probability of dying is highest in the case of Africa (2.5 percent)
 while Oceania has the lowest (0.19 percent).*/
 
 	-- C. Countries by income
@@ -206,7 +235,7 @@ Group by location
 ORDER BY
     4 desc
 
-/* The output shows that if infected with COVID-19 then the probability of dying is the highest in low-income 
+/* The output shows that if infected with COVID-19, then the probability of dying is the highest in low-income 
 countries (2.07 percent) while it is the lowest in the case of high-income countries.*/
 
 --6. Checking the likelihood of contracting the infection by month.
@@ -241,8 +270,8 @@ GROUP BY
 order by 
 	2 desc
 
-/* The output shows that the likelihood of dying from covid is far more high in March, April, May. This might be due to
-the fact that the infection rate is higher in the first five months of the year. However further investigation is 
+/* The output shows that the likelihood of dying from COVID-19 is far more high in March, April, and May. This might be due to
+the fact that the infection rate is higher in the first five months of the year. However, further investigation is 
 needed.*/
 
 --8. Investigation by each year (2020, 2021, 2022, 2023)
@@ -256,7 +285,7 @@ from
 order by 
 	year(date)
 
-	-- A. INVESTIGATING MONTHWISE DEATH PERCENTAGE BY YEAR
+	-- A. INVESTIGATING MONTH-WISE DEATH PERCENTAGE BY YEAR
 	
 	-- Death percentage per month for the year 2020
 
@@ -308,7 +337,7 @@ GROUP BY
 order by 
 	2 desc
 
-/* Death percentage is higher at the begining of the year 2022 and then starts declining*/
+/* Death percentage is higher at the beginning of the year 2022 and then starts declining*/
 
 	--  Death percentage per month for the year 2023
 
@@ -328,7 +357,7 @@ order by
 /* The death percentage is almost uniform across the first 7 months of 2023*/ 
 
 
-	--	B. INVESTIGATING MONTHWISE INFECTION RATE BY YEAR
+	--	B. INVESTIGATING MONTH-WISE INFECTION RATE BY YEAR
 
 -- Infection rate per month for the year 2020
 SELECT
@@ -361,8 +390,8 @@ order by
 	2 desc
 
 
-/* Infection rate is higher in the start of the year 2021 and then starts declining. 
-The infection rate is lower than in year 2020.*/
+/* Infection rate is higher at the start of the year 2021 and then starts declining. 
+The infection rate is lower than in the year 2020.*/
 
 	-- Infection rate per month for the year 2022
 SELECT
@@ -395,9 +424,9 @@ GROUP BY
 order by 
 	2 desc
 
-/* The infection rate is again higher higher at the start of the year and then declines through out the year.*/ 
+/* The infection rate is again higher at the start of the year and then declines throughout the year.*/ 
 
-/* By analyzing the output of the above queries shows that over period of time the infection and death rates are declining.*/
+/* By analyzing the output of the above queries shows that over a period of time, the infection and death rates are declining.*/
 
 
 -- 9. Total Case vs Population 
@@ -416,9 +445,9 @@ group by
 Order By 
 	2 desc
 
-/* The out put shows that Cyprus has the highest percentage of population infected (73.75%).
-While scrolling through the output it came to light that in case of Northern Cyprus, Turkmenistan Northern Ireland,
-Taiwan, North Korea, Macao, Scotland, England, Western Sahara, Wales, Hong Kong, the percentage values are null.
+/* The output shows that Cyprus has the highest percentage of the population infected (73.75%).
+While scrolling through the output it came to light that in the case of Northern Cyprus, Turkmenistan Northern Ireland,
+Taiwan, North Korea, Macao, Scotland, England, Western Sahara, Wales, and Hong Kong, the percentage values are null.
 We need to investigate it.*/
 
 select 
@@ -431,7 +460,7 @@ where
 	location = 'Northern Cyprus' 
 	and (total_cases is not null or	new_cases is not null)
 
-/* The output shows that there is no data on new infection and total infections in case of Northern Cyprus*/ 
+/* The output shows that there is no data on new infections and total infections in the case of Northern Cyprus*/ 
 
 select 
 	population
@@ -441,9 +470,9 @@ where
 	location = 'Northern Cyprus' 
 		and population is null
 
-/* There is no null in the population column in case of Northern Cyprus*/
+/* There is no null in the population column in the case of Northern Cyprus*/
 
-/* The other countries should also be investigated in to check the status of total infections, new infections and
+/* The other countries should also be investigated in to check the status of total infections, new infections, and
 population.*/
 
 
@@ -461,8 +490,8 @@ group by
 Order By 
 	2 desc
 
-/* The output shows that the percentage of population effected infected is the highest in case of Europe, while it is the 
-lowest in case of Oceania*/ 
+/* The output shows that the percentage of the population affected infected is the highest in the case of Europe, while it is the 
+lowest in the case of Oceania*/ 
 
 	--C. Percent of population infected by classification of countries by income
 
@@ -479,8 +508,8 @@ group by
 Order By 
 	2 desc
 
-/* The output shows that the percentage of population effected infected is the highest in case of High income countries,
-, while it is the lowest in case of low income countries.*/
+/* The output shows that the percentage of the population affected infected is the highest in the case of High-income countries,
+while it is the lowest in the case of low-income countries.*/
 
 
 -- 10. Death count 
@@ -498,7 +527,7 @@ Group by
 Order By 
 	Total_death_count Desc
 
-/* The output shows that United States has the highest death count while Tuvalu has the lowest.*/ 
+/* The output shows that the United States has the highest death count while Tuvalu has the lowest.*/ 
 
 	--B. By Continent
 
@@ -534,7 +563,7 @@ group by
 Order By 
 	2 desc
 
-/* High income countries has the highest death count while Low income countries has the lowest.*/
+/* High-income countries have the highest death count while Low-income countries have the lowest.*/
 
 -- 11. Fertility rate
 
@@ -543,7 +572,7 @@ select
 from 
 	covid_deaths
 
-	--A. By countries 
+	--A. By Countries 
 select 
 	location, 
 	avg(convert(float,reproduction_rate)) as avg_reproduction_rate
@@ -556,7 +585,7 @@ group by
 order by 
 	2 desc
 
-/* Spain had the highest reproduction rate, while Nauru has the lowest. 
+/* Spain has the highest reproduction rate, while Nauru has the lowest. 
 There are 49 countries for which we have null values for reproduction. Look into it*/
 
 	--B. By continent
@@ -587,7 +616,7 @@ where
 	location in ('Lower middle income', 'Low income', 'Upper middle income', 'High income')
 group by location
 
-/* It seems that there is no data on reproduction rate in case of classification of countries by income*/ 
+/* It seems that there is no data on reproduction rate in the case of classification of countries by income*/ 
 
 select 
 	location, 
@@ -605,16 +634,16 @@ Select
 From
 	covid_vacci
 
-	--A.  checking number of rows and columns
+	--A.  checking the number of rows and columns
 
 SELECT 
     (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'covid_vacci') AS NumberOfColumns,
     (SELECT SUM(row_count) FROM sys.dm_db_partition_stats WHERE object_id = OBJECT_ID('covid_vacci')) AS NumberOfRows;
 
 
--- 13. Investigating the percent of total population vaccinated
+-- 13. Investigating the percent of the total population vaccinated
 
-	--A. For investigating which column contains information on vaccination that we can use for our analysis. 
+	--A. To investigate which column contains information on vaccination that we can use for our analysis, 
 
 With CTE (location, population, fully_vaccinated, people_vaccinated) as (
 	select 
@@ -640,7 +669,7 @@ select
 	order by 2 desc
 
 /* The output shows that the column people_fully_vaccinated contains information on the number of people fully vaccinated.
-Thus we will use it.*/
+Thus, I will use it.*/
 
 -- 14. Checking average rolling people vaccinated by year
 	
@@ -721,7 +750,7 @@ order by
 	1, 
 	2
 
-/* The output shows that the vaccinated percentage of population on each continent has increased over the years.*/
+/* The output shows that the vaccinated percentage of the population on each continent has increased over the years.*/
 
 	--C. For by income group
 Drop Table if exists 
